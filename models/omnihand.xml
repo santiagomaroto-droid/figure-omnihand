@@ -1,0 +1,234 @@
+<mujoco model="figure_omnihand_tactile_v">
+  <compiler angle="radian" coordinate="local" meshdir="assets" autolimits="true"/>
+  <option gravity="0 0 -9.81" timestep="0.001" iterations="50" solver="Newton" cone="elliptic"/>
+
+  <default>
+    <joint damping="0.05" armature="0.002" frictionloss="0.01"/>
+    <geom contype="1" conaffinity="1" condim="4" friction="1.2 0.005 0.0001" margin="0.001"/>
+    <motor ctrlrange="-10 10" ctrllimited="true"/>
+    <position kp="15" kv="1.2" forcelimited="true" forcerange="-25 25"/>
+  </default>
+
+  <asset>
+    <!-- Materials matching Figure AI Hardware finishes -->
+    <material name="carbon_fiber" rgba="0.12 0.13 0.15 1" specular="0.6" shininess="0.4"/>
+    <material name="anodized_titanium" rgba="0.75 0.78 0.82 1" specular="0.9" shininess="0.8"/>
+    <material name="silicone_tactile" rgba="0.05 0.85 0.95 0.9" specular="0.1" shininess="0.1"/>
+    <material name="cable_harness" rgba="1.0 0.5 0.0 1" specular="0.3" shininess="0.2"/>
+  </asset>
+
+  <worldbody>
+    <light directional="true" pos="0.5 0.5 1.5" dir="-0.5 -0.5 -1.0" diffuse="0.8 0.8 0.8"/>
+    <geom name="floor" type="plane" size="2 2 0.1" rgba="0.1 0.11 0.13 1"/>
+
+    <!-- Forearm Base Assembly (Housing BLDC Actuator Cluster) -->
+    <body name="forearm" pos="0 0 0.5">
+      <geom name="forearm_shell" type="cylinder" size="0.045 0.18" material="carbon_fiber" mass="0.420"/>
+      
+      <!-- 2-DoF Wrist: Pitch (-45° to +45°) -->
+      <body name="wrist_pitch_link" pos="0 0 0.19">
+        <joint name="wrist_pitch" type="hinge" axis="1 0 0" range="-0.785 0.785" damping="0.2"/>
+        <geom name="wrist_pivot" type="sphere" size="0.022" material="anodized_titanium" mass="0.045"/>
+
+        <!-- Wrist: Yaw/Roll (-30° to +30°) -->
+        <body name="palm" pos="0 0 0.035">
+          <joint name="wrist_yaw" type="hinge" axis="0 1 0" range="-0.523 0.523" damping="0.2"/>
+          <geom name="palm_chassis" type="box" size="0.042 0.018 0.045" material="carbon_fiber" mass="0.180"/>
+          <!-- Palm Tactile Sensing Grid -->
+          <site name="site_palm_center" pos="0 0.019 0.01" size="0.025 0.002 0.03" type="box"/>
+
+          <!-- ========================================================== -->
+          <!-- THUMB (3-DoF Active Opposition & Flexion)                  -->
+          <!-- ========================================================== -->
+          <body name="thumb_cmc" pos="-0.035 0.01 -0.01" quat="0.9238 0.3826 0 0">
+            <joint name="thumb_oppose" type="hinge" axis="0 0 1" range="-0.2 1.57" damping="0.08"/>
+            <geom name="thumb_cmc_geom" type="capsule" size="0.012 0.015" material="anodized_titanium" mass="0.025"/>
+
+            <body name="thumb_mcp" pos="-0.015 0.01 0.028">
+              <joint name="thumb_flex" type="hinge" axis="1 0 0" range="-0.1 1.4" damping="0.05"/>
+              <geom name="thumb_proximal" type="capsule" size="0.010 0.020" material="carbon_fiber" mass="0.022"/>
+
+              <body name="thumb_distal" pos="0 0 0.035">
+                <joint name="thumb_ip" type="hinge" axis="1 0 0" range="0.0 1.5" damping="0.03"/>
+                <geom name="thumb_distal_geom" type="capsule" size="0.009 0.016" material="carbon_fiber" mass="0.015"/>
+                <!-- Tactile Sensor Pad -->
+                <geom name="thumb_tactile_pad" type="sphere" size="0.010" pos="0 0.006 0.016" material="silicone_tactile"/>
+                <site name="site_tactile_thumb" pos="0 0.006 0.016" size="0.006" rgba="0 1 1 1"/>
+              </body>
+            </body>
+          </body>
+
+          <!-- ========================================================== -->
+          <!-- INDEX FINGER (4-DoF Bio-Kinematic Chain)                   -->
+          <!-- ========================================================== -->
+          <body name="index_mcp" pos="-0.028 0.002 0.05">
+            <joint name="index_abd" type="hinge" axis="0 1 0" range="-0.35 0.35" damping="0.04"/>
+            <geom name="index_mcp_knuckle" type="sphere" size="0.008" material="anodized_titanium" mass="0.008"/>
+            <body name="index_proximal" pos="0 0 0">
+              <joint name="index_mcp_flex" type="hinge" axis="1 0 0" range="-0.1 1.57" damping="0.05"/>
+              <geom name="index_prox_geom" type="capsule" size="0.009 0.022" material="carbon_fiber" mass="0.024"/>
+
+              <body name="index_medial" pos="0 0 0.042">
+                <joint name="index_pip_flex" type="hinge" axis="1 0 0" range="0.0 1.6" damping="0.03"/>
+                <geom name="index_med_geom" type="capsule" size="0.008 0.017" material="carbon_fiber" mass="0.016"/>
+
+                <body name="index_distal" pos="0 0 0.032">
+                  <joint name="index_dip_flex" type="hinge" axis="1 0 0" range="0.0 1.4" damping="0.02"/>
+                  <geom name="index_dist_geom" type="capsule" size="0.007 0.013" material="carbon_fiber" mass="0.011"/>
+                  <geom name="index_tactile_pad" type="sphere" size="0.0085" pos="0 0.005 0.013" material="silicone_tactile"/>
+                  <site name="site_tactile_index" pos="0 0.005 0.013" size="0.005" rgba="0 1 1 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+
+          <!-- ========================================================== -->
+          <!-- MIDDLE FINGER                                              -->
+          <!-- ========================================================== -->
+          <body name="middle_mcp" pos="-0.009 0.002 0.053">
+            <joint name="middle_abd" type="hinge" axis="0 1 0" range="-0.2 0.2" damping="0.04"/>
+            <geom name="middle_mcp_knuckle" type="sphere" size="0.008" material="anodized_titanium" mass="0.008"/>
+            <body name="middle_proximal" pos="0 0 0">
+              <joint name="middle_mcp_flex" type="hinge" axis="1 0 0" range="-0.1 1.57" damping="0.05"/>
+              <geom name="middle_prox_geom" type="capsule" size="0.009 0.024" material="carbon_fiber" mass="0.026"/>
+
+              <body name="middle_medial" pos="0 0 0.046">
+                <joint name="middle_pip_flex" type="hinge" axis="1 0 0" range="0.0 1.6" damping="0.03"/>
+                <geom name="middle_med_geom" type="capsule" size="0.008 0.018" material="carbon_fiber" mass="0.017"/>
+
+                <body name="middle_distal" pos="0 0 0.034">
+                  <joint name="middle_dip_flex" type="hinge" axis="1 0 0" range="0.0 1.4" damping="0.02"/>
+                  <geom name="middle_dist_geom" type="capsule" size="0.007 0.014" material="carbon_fiber" mass="0.012"/>
+                  <geom name="middle_tactile_pad" type="sphere" size="0.0085" pos="0 0.005 0.014" material="silicone_tactile"/>
+                  <site name="site_tactile_middle" pos="0 0.005 0.014" size="0.005" rgba="0 1 1 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+
+          <!-- ========================================================== -->
+          <!-- RING FINGER                                                -->
+          <!-- ========================================================== -->
+          <body name="ring_mcp" pos="0.010 0.002 0.050">
+            <joint name="ring_abd" type="hinge" axis="0 1 0" range="-0.2 0.2" damping="0.04"/>
+            <geom name="ring_mcp_knuckle" type="sphere" size="0.008" material="anodized_titanium" mass="0.008"/>
+            <body name="ring_proximal" pos="0 0 0">
+              <joint name="ring_mcp_flex" type="hinge" axis="1 0 0" range="-0.1 1.57" damping="0.05"/>
+              <geom name="ring_prox_geom" type="capsule" size="0.0085 0.022" material="carbon_fiber" mass="0.022"/>
+
+              <body name="ring_medial" pos="0 0 0.042">
+                <joint name="ring_pip_flex" type="hinge" axis="1 0 0" range="0.0 1.6" damping="0.03"/>
+                <geom name="ring_med_geom" type="capsule" size="0.0075 0.017" material="carbon_fiber" mass="0.015"/>
+
+                <body name="ring_distal" pos="0 0 0.032">
+                  <joint name="ring_dip_flex" type="hinge" axis="1 0 0" range="0.0 1.4" damping="0.02"/>
+                  <geom name="ring_dist_geom" type="capsule" size="0.007 0.013" material="carbon_fiber" mass="0.010"/>
+                  <geom name="ring_tactile_pad" type="sphere" size="0.008" pos="0 0.005 0.013" material="silicone_tactile"/>
+                  <site name="site_tactile_ring" pos="0 0.005 0.013" size="0.005" rgba="0 1 1 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+
+          <!-- ========================================================== -->
+          <!-- PINKY FINGER                                               -->
+          <!-- ========================================================== -->
+          <body name="pinky_mcp" pos="0.028 0.002 0.044">
+            <joint name="pinky_abd" type="hinge" axis="0 1 0" range="-0.35 0.35" damping="0.04"/>
+            <geom name="pinky_mcp_knuckle" type="sphere" size="0.008" material="anodized_titanium" mass="0.008"/>
+            <body name="pinky_proximal" pos="0 0 0">
+              <joint name="pinky_mcp_flex" type="hinge" axis="1 0 0" range="-0.1 1.57" damping="0.05"/>
+              <geom name="pinky_prox_geom" type="capsule" size="0.008 0.018" material="carbon_fiber" mass="0.018"/>
+
+              <body name="pinky_medial" pos="0 0 0.036">
+                <joint name="pinky_pip_flex" type="hinge" axis="1 0 0" range="0.0 1.6" damping="0.03"/>
+                <geom name="pinky_med_geom" type="capsule" size="0.007 0.015" material="carbon_fiber" mass="0.012"/>
+
+                <body name="pinky_distal" pos="0 0 0.028">
+                  <joint name="pinky_dip_flex" type="hinge" axis="1 0 0" range="0.0 1.4" damping="0.02"/>
+                  <geom name="pinky_dist_geom" type="capsule" size="0.0065 0.011" material="carbon_fiber" mass="0.008"/>
+                  <geom name="pinky_tactile_pad" type="sphere" size="0.0075" pos="0 0.004 0.011" material="silicone_tactile"/>
+                  <site name="site_tactile_pinky" pos="0 0.004 0.011" size="0.005" rgba="0 1 1 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+
+        </body>
+      </body>
+    </body>
+
+    <!-- Target Workpiece: BMW Automotive Wiring Harness Conduit -->
+    <body name="bmw_wire_harness" pos="0 0.04 0.62" quat="0.707 0 0.707 0">
+      <freejoint/>
+      <geom name="wire_core" type="capsule" size="0.012 0.12" material="cable_harness" mass="0.085" condim="4" friction="0.8 0.005 0.0001"/>
+      <geom name="wire_connector_plug" type="box" size="0.018 0.018 0.025" pos="0 0 0.13" material="anodized_titanium" mass="0.035"/>
+    </body>
+
+  </worldbody>
+
+  <!-- ========================================================== -->
+  <!-- DYNEEMA TENDON SPATIAL TRANSMISSION                        -->
+  <!-- ========================================================== -->
+  <tendon>
+    <!-- Index Finger Flexor Tendon Routing -->
+    <spatial name="tendon_index_flexor" limited="true" range="0.0 0.14" width="0.001" rgba="0 0.9 1 0.7">
+      <site site="site_palm_center"/>
+      <site site="site_tactile_index"/>
+    </spatial>
+    <!-- Thumb Flexor Routing -->
+    <spatial name="tendon_thumb_flexor" limited="true" range="0.0 0.12" width="0.001" rgba="0 0.9 1 0.7">
+      <site site="site_palm_center"/>
+      <site site="site_tactile_thumb"/>
+    </spatial>
+  </tendon>
+
+  <!-- ========================================================== -->
+  <!-- ACTUATOR ENVELOPES (BLDC Motors with Low-Ratio Gears)      -->
+  <!-- ========================================================== -->
+  <actuator>
+    <!-- Wrist -->
+    <position name="act_wrist_pitch" joint="wrist_pitch" kp="45" kv="3.0" forcerange="-18 18"/>
+    <position name="act_wrist_yaw"   joint="wrist_yaw"   kp="35" kv="2.5" forcerange="-15 15"/>
+
+    <!-- Thumb -->
+    <position name="act_thumb_oppose" joint="thumb_oppose" kp="20" kv="1.5" forcerange="-12 12"/>
+    <position name="act_thumb_flex"   joint="thumb_flex"   kp="18" kv="1.2" forcerange="-10 10"/>
+    <position name="act_thumb_ip"     joint="thumb_ip"     kp="12" kv="0.8" forcerange="-8 8"/>
+
+    <!-- Index -->
+    <position name="act_index_abd"      joint="index_abd"      kp="10" kv="0.8" forcerange="-5 5"/>
+    <position name="act_index_mcp_flex" joint="index_mcp_flex" kp="16" kv="1.2" forcerange="-10 10"/>
+    <position name="act_index_pip_flex" joint="index_pip_flex" kp="14" kv="1.0" forcerange="-8 8"/>
+    <position name="act_index_dip_flex" joint="index_dip_flex" kp="10" kv="0.6" forcerange="-6 6"/>
+
+    <!-- Middle -->
+    <position name="act_middle_abd"      joint="middle_abd"      kp="10" kv="0.8" forcerange="-5 5"/>
+    <position name="act_middle_mcp_flex" joint="middle_mcp_flex" kp="16" kv="1.2" forcerange="-10 10"/>
+    <position name="act_middle_pip_flex" joint="middle_pip_flex" kp="14" kv="1.0" forcerange="-8 8"/>
+    <position name="act_middle_dip_flex" joint="middle_dip_flex" kp="10" kv="0.6" forcerange="-6 6"/>
+
+    <!-- Ring -->
+    <position name="act_ring_abd"      joint="ring_abd"      kp="8" kv="0.6" forcerange="-4 4"/>
+    <position name="act_ring_mcp_flex" joint="ring_mcp_flex" kp="14" kv="1.0" forcerange="-8 8"/>
+    <position name="act_ring_pip_flex" joint="ring_pip_flex" kp="12" kv="0.8" forcerange="-7 7"/>
+    <position name="act_ring_dip_flex" joint="ring_dip_flex" kp="8" kv="0.5" forcerange="-5 5"/>
+
+    <!-- Pinky -->
+    <position name="act_pinky_abd"      joint="pinky_abd"      kp="8" kv="0.6" forcerange="-4 4"/>
+    <position name="act_pinky_mcp_flex" joint="pinky_mcp_flex" kp="12" kv="0.9" forcerange="-7 7"/>
+    <position name="act_pinky_pip_flex" joint="pinky_pip_flex" kp="10" kv="0.7" forcerange="-6 6"/>
+    <position name="act_pinky_dip_flex" joint="pinky_dip_flex" kp="6" kv="0.4" forcerange="-4 4"/>
+  </actuator>
+
+  <!-- ========================================================== -->
+  <!-- SENSORS (1,000 Hz Tactile Pressure & Force Vectors)       -->
+  <!-- ========================================================== -->
+  <sensor>
+    <touch name="sensor_touch_thumb"  site="site_tactile_thumb"/>
+    <touch name="sensor_touch_index"  site="site_tactile_index"/>
+    <touch name="sensor_touch_middle" site="site_tactile_middle"/>
+    <touch name="sensor_touch_ring"   site="site_tactile_ring"/>
+    <touch name="sensor_touch_pinky"  site="site_tactile_pinky"/>
+  </sensor>
+</mujoco>
