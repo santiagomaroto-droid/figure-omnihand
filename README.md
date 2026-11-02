@@ -108,4 +108,6 @@ figure-omnihand/
 
 If you have feedback, questions, or would like to test the models further, feel free to open an issue or connect directly!
 
-3. [👉 LAUNCH 3D DIGITAL TWIN IN YOUR BROWSER] https://santiagomaroto-droid.github.io/figure-omnihand/
+ [👉 LAUNCH 3D DIGITAL TWIN IN YOUR BROWSER] https://santiagomaroto-droid.github.io/figure-omnihand/
+
+ 
