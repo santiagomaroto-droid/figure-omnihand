@@ -107,3 +107,5 @@ figure-omnihand/
 *This project was developed out of deep admiration for Figure AI's engineering culture and mission. Rather than presenting generic concept art or high-level sci-fi proposals, this repository focuses strictly on mathematically grounded robotics: mechatronic packaging, friction cone dynamics, deterministic embedded reflex loops, and actionable simulation models designed for the BMW Spartanburg assembly lines.*
 
 If you have feedback, questions, or would like to test the models further, feel free to open an issue or connect directly!
+
+3. [👉 LAUNCH 3D DIGITAL TWIN IN YOUR BROWSER] https://santiagomaroto-droid.github.io/figure-omnihand/
